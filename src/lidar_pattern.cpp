@@ -340,7 +340,15 @@ void callback(const PointCloud2::ConstPtr &laser_cloud) {
 
   int best_candidate_idx = -1;
   double best_candidate_score = -1;
+  if (DEBUG)
+  { 
+    ROS_INFO("groups.size(): %d", groups.size());
+  }
   for (int i = 0; i < groups.size(); ++i) {
+    if (DEBUG)
+    { 
+      ROS_INFO("groups_scores[%d]: %f", i, groups_scores[i]);
+    }
     if (best_candidate_score == 1 && groups_scores[i] == 1) {
       // Exit 4: Several candidates fit target's geometry
       ROS_ERROR(
@@ -466,6 +474,11 @@ void callback(const PointCloud2::ConstPtr &laser_cloud) {
 }
 
 void param_callback(velo2cam_calibration::LidarConfig &config, uint32_t level) {
+  delta_width_circles_ = config.delta_width_circles;
+  ROS_INFO("[LiDAR] New delta_width_circles_: %f", delta_width_circles_);
+  delta_height_circles_ = config.delta_height_circles;
+  ROS_INFO("[LiDAR] New delta_height_circles_: %f", delta_height_circles_);
+
   passthrough_radius_min_ = config.passthrough_radius_min;
   ROS_INFO("[LiDAR] New passthrough_radius_min_ threshold: %f",
            passthrough_radius_min_);
@@ -529,7 +542,7 @@ int main(int argc, char **argv) {
   nh_.param("min_cluster_factor", min_cluster_factor_, 0.5);
   nh_.param("rings_count", rings_count_, 64);
   nh_.param("skip_warmup", skip_warmup_, false);
-  nh_.param("save_to_file", save_to_file_, false);
+  nh_.param("save_to_file", save_to_file_, true);
   nh_.param("csv_name", csv_name,
             "lidar_pattern_" + currentDateTime() + ".csv");
 

@@ -4,6 +4,9 @@
   <arg name="cloud_topic" default="velodyne_points" />
   <arg name="sensor_id" default="0" />
 
+  <arg name="delta_width_circles" value="0.5"/>
+  <arg name="delta_height_circles" value="0.4"/>
+
   <node pkg="nodelet" type="nodelet" name="pcl_manager_$(arg sensor_id)" args="manager" output="$(arg stdout)"/>
 
   <node pkg="nodelet" type="nodelet" name="pass_through_z_velo_$(arg sensor_id)" args="load pcl/PassThrough pcl_manager_$(arg sensor_id)" output="$(arg stdout)">
@@ -43,6 +46,8 @@
   </node>
 
   <node pkg="velo2cam_calibration" type="lidar_pattern" name="lidar_pattern_$(arg sensor_id)" output="screen">
+        <param name="delta_width_circles" value="$(arg delta_width_circles)"/>
+        <param name="delta_height_circles" value="$(arg delta_height_circles)"/>
     <remap from="~cloud1" to="/lidar_pattern_$(arg sensor_id)/zyx_filtered"/>
     <rosparam>
       passthrough_radius_min: 1.0

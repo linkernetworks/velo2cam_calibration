@@ -260,6 +260,11 @@ void calibrateExtrinsics(int seek_iter = -1) {
              << total_sensor2 << endl;
   }
 
+
+  printf("[ [ %f, %f, %f],\n     [ %f, %f, %f], \n     [ %f, %f, %f] \n",
+            inverse.getBasis()[0][0], inverse.getBasis()[0][1], inverse.getBasis()[0][2],
+            inverse.getBasis()[1][0], inverse.getBasis()[1][1], inverse.getBasis()[1][2],
+            inverse.getBasis()[2][0], inverse.getBasis()[2][1], inverse.getBasis()[2][2]);
   cout << setprecision(4) << std::fixed;
   cout << "Calibration finished succesfully." << endl;
   cout << "Extrinsic parameters:" << endl;
@@ -322,6 +327,9 @@ void sensor1_callback(
   }
 
   if (is_sensor1_cam) {
+    if (DEBUG) {
+      ROS_WARN("sensor1 cam");
+    }
     std::ostringstream sstream;
     sstream << "rotated_" << sensor1_frame_id;
     sensor1_rotated_frame_id = sstream.str();
@@ -333,9 +341,18 @@ void sensor1_callback(
 
     tf::TransformListener listener;
     tf::StampedTransform transform;
+    if (DEBUG) {
+      ROS_WARN("before try catch");
+    }
     try {
+      if (DEBUG) {
+        ROS_WARN("wait for transform");
+      }
       listener.waitForTransform(sensor1_rotated_frame_id, sensor1_frame_id,
-                                ros::Time(0), ros::Duration(20.0));
+                                ros::Time(0), ros::Duration(10.0));
+      if (DEBUG) {
+        ROS_WARN("lookup transform");
+      }
       listener.lookupTransform(sensor1_rotated_frame_id, sensor1_frame_id,
                                ros::Time(0), transform);
     } catch (tf::TransformException &ex) {
@@ -349,9 +366,15 @@ void sensor1_callback(
 
     pcl_ros::transformPointCloud(*xy_sensor1_cloud, *sensor1_cloud, transform);
   } else {
+    if (DEBUG) {
+      ROS_WARN("sensor1 not cam");
+    }
     fromROSMsg(sensor1_centroids->cloud, *sensor1_cloud);
   }
 
+  if (DEBUG) {
+    ROS_WARN("sensor1Reveived = true");
+  }
   sensor1Received = true;
 
   sortPatternCenters(sensor1_cloud, sensor1_vector);
@@ -521,6 +544,7 @@ void sensor2_callback(
     sensor2_buffer.resize(TARGET_POSITIONS_COUNT + 1);
   }
 
+  ROS_INFO("524");
   if (is_sensor2_cam) {
     std::ostringstream sstream;
     sstream << "rotated_" << sensor2_frame_id;
@@ -554,6 +578,7 @@ void sensor2_callback(
 
   sensor2Received = true;
 
+  ROS_INFO("558");
   sortPatternCenters(sensor2_cloud, sensor2_vector);
 
   if (DEBUG) {
@@ -566,6 +591,7 @@ void sensor2_callback(
     colour_sensor2_pub.publish(colour_cloud);
   }
 
+  ROS_INFO("570");
   sensor2_buffer[TARGET_POSITIONS_COUNT].push_back(
       std::tuple<int, int, pcl::PointCloud<pcl::PointXYZ>,
                  std::vector<pcl::PointXYZ>>(
@@ -580,7 +606,7 @@ void sensor2_callback(
        it < sensor2_vector.end(); ++it) {
     if (DEBUG)
       cout << "c" << it - sensor2_vector.begin() << "="
-           << "[" << (*it).x << " " << (*it).y << " " << (*it).z << "]" << endl;
+           << "[" << (*it).x << ", " << (*it).y << ", " << (*it).z << "]," << endl;
   }
 
   // sync_iterations is designed to extract a calibration result every single
@@ -598,6 +624,16 @@ void sensor2_callback(
     }
     return;
   }
+  ROS_INFO("604");
+  if (sensor1Received)
+  {
+    ROS_INFO("sensor1Receiv");
+  }
+  if (sensor2Received)
+  {
+    ROS_INFO("sensor2Receiv");
+  }
+  ROS_INFO("end");
 
   // Normal operation (sync_iterations=false)
   if (sensor1Received && sensor2Received) {
@@ -667,7 +703,7 @@ int main(int argc, char **argv) {
   string csv_name;
 
   nh_->param<bool>("sync_iterations", sync_iterations, false);
-  nh_->param<bool>("save_to_file", save_to_file_, false);
+  nh_->param<bool>("save_to_file", save_to_file_, true);
   nh_->param<bool>("publish_tf", publish_tf_, true);
   nh_->param<bool>("is_sensor2_cam", is_sensor2_cam, false);
   nh_->param<bool>("is_sensor1_cam", is_sensor1_cam, false);

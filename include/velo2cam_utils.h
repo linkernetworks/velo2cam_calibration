@@ -27,14 +27,14 @@
 #define velo2cam_utils_H
 
 #define PCL_NO_PRECOMPILE
-#define DEBUG 0
+#define DEBUG 1
 
 #include <pcl/search/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
 
 #define TARGET_NUM_CIRCLES 4
 #define TARGET_RADIUS 0.12
-#define GEOMETRY_TOLERANCE 0.06
+#define GEOMETRY_TOLERANCE 0.10 // 0.06
 
 using namespace std;
 
@@ -304,8 +304,22 @@ class Square {
     for (int i = 0; i < _candidates.size(); ++i) {
       candidates_cloud->push_back(_candidates[i]);
       float d = distance(_center, _candidates[i]);
+      
+      if (DEBUG)
+      {
+        ROS_INFO("relative error: %f", (fabs(d - _target_diagonal / 2.) / (_target_diagonal / 2.)) );
+        ROS_INFO("d: %f", d );
+        ROS_INFO("_target_diagonal: %f", _target_diagonal );
+        ROS_INFO("_center_x: %f", _center.x );
+        ROS_INFO("_center_y: %f", _center.y );
+        ROS_INFO("_center_z: %f", _center.z );
+      }
+
       if (fabs(d - _target_diagonal / 2.) / (_target_diagonal / 2.) >
           GEOMETRY_TOLERANCE) {
+        if (DEBUG) {
+          ROS_INFO("larger than tolerance return false");
+        }
         return false;
       }
     }
@@ -314,16 +328,23 @@ class Square {
     sortPatternCenters(candidates_cloud, sorted_centers);
     float perimeter = 0;
     for (int i = 0; i < sorted_centers.size(); ++i) {
+      ROS_INFO("check 1");
       float current_distance = distance(
           sorted_centers[i], sorted_centers[(i + 1) % sorted_centers.size()]);
       if (i % 2) {
         if (fabs(current_distance - _target_height) / _target_height >
             GEOMETRY_TOLERANCE) {
+          if (DEBUG) {
+            ROS_INFO("height not good");
+          }
           return false;
         }
       } else {
         if (fabs(current_distance - _target_width) / _target_width >
             GEOMETRY_TOLERANCE) {
+          if (DEBUG) {
+            ROS_INFO("width not good");
+          }
           return false;
         }
       }
@@ -332,10 +353,17 @@ class Square {
     float ideal_perimeter = (2 * _target_width + 2 * _target_height);
     if (fabs((perimeter - ideal_perimeter) / ideal_perimeter >
              GEOMETRY_TOLERANCE)) {
+      ROS_INFO("check 2");
+      if (DEBUG) {
+        ROS_INFO("width not good");
+      }
       return false;
     }
 
     // Check width + height?
+    if (DEBUG) {
+      ROS_INFO("return true");
+    }
     return true;
   }
 };

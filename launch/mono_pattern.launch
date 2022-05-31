@@ -8,11 +8,21 @@
 
     <!-- Marker size (side) in meters -->
     <arg name="marker_size" value="0.2"/>
+    <arg name="delta_width_qr_center" value="0.55"/>
+    <arg name="delta_height_qr_center" value="0.35"/>
+    <arg name="delta_width_circles" value="0.5"/>
+    <arg name="delta_height_circles" value="0.4"/>
+    <arg name="min_detected_markers" value="3"/>
 
     <node pkg="velo2cam_calibration" type="mono_qr_pattern" name="mono_pattern_$(arg sensor_id)" output="$(arg stdout)">
         <param name="image_topic" value="$(arg camera_name)/$(arg image_topic)" />
         <param name="cinfo_topic" value="$(arg camera_name)/camera_info" />
         <param name="marker_size" value="$(arg marker_size)"/>
+        <param name="delta_width_qr_center" value="$(arg delta_width_qr_center)"/>
+        <param name="delta_height_qr_center" value="$(arg delta_height_qr_center)"/>
+        <param name="delta_width_circles" value="$(arg delta_width_circles)"/>
+        <param name="delta_height_circles" value="$(arg delta_height_circles)"/>
+        <param name="min_detected_markers" value="$(arg min_detected_markers)"/>
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="camera_ros_tf_$(arg sensor_id)" args="0 0 0 -1.57079632679 0 -1.57079632679 rotated_$(arg frame_name) $(arg frame_name) 10"/>

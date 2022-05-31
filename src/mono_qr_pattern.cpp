@@ -119,6 +119,7 @@ Eigen::Matrix3f covariance(pcl::PointCloud<pcl::PointXYZ>::Ptr cumulative_cloud,
 void imageCallback(const sensor_msgs::ImageConstPtr &msg,
                    const sensor_msgs::CameraInfoConstPtr &left_info) {
   frames_proc_++;
+  ROS_WARN("frame_id: %s", msg->header.frame_id.c_str());
 
   cv_bridge::CvImageConstPtr cv_img_ptr;
   try {
@@ -482,7 +483,12 @@ std:
 
   if (DEBUG) {
     cv::namedWindow("out", WINDOW_NORMAL);
-    cv::imshow("out", imageCopy);
+    cout<<'1'<<endl;
+    cv::Mat imS;
+    cv::resize(imageCopy, imS, cv::Size(1200, 800), 0, 0, cv::INTER_LINEAR);
+    //cv::imshow("out", imageCopy);
+    cv::imshow("out", imS);
+    cout<<'2'<<endl;
     cv::waitKey(1);
   }
 
@@ -502,6 +508,12 @@ void param_callback(velo2cam_calibration::MonocularConfig &config,
   ROS_INFO("New delta_width_qr_center_: %f", delta_width_qr_center_);
   delta_height_qr_center_ = config.delta_height_qr_center;
   ROS_INFO("New delta_height_qr_center_: %f", delta_height_qr_center_);
+  delta_width_circles_ = config.delta_width_circles;
+  ROS_INFO("New delta_width_circles_: %f", delta_width_circles_);
+  delta_height_circles_ = config.delta_height_circles;
+  ROS_INFO("New delta_height_circles_: %f", delta_height_circles_);
+  min_detected_markers_ = config.min_detected_markers;
+  ROS_INFO("New min_detected_markers_: %f", min_detected_markers_);
 }
 
 void warmup_callback(const std_msgs::Empty::ConstPtr &msg) {
@@ -545,7 +557,7 @@ int main(int argc, char **argv) {
   nh_.param("cluster_tolerance", cluster_tolerance_, 0.05);
   nh_.param("min_cluster_factor", min_cluster_factor_, 2.0 / 3.0);
   nh_.param("skip_warmup", skip_warmup_, false);
-  nh_.param("save_to_file", save_to_file_, false);
+  nh_.param("save_to_file", save_to_file_, true);
   nh_.param("csv_name", csv_name, "mono_pattern_" + currentDateTime() + ".csv");
 
   string image_topic, cinfo_topic;
